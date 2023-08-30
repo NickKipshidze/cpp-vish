@@ -2,7 +2,10 @@
 #include <cstring>
 #include <string>
 #include <unistd.h>
-#include <pwd.h>  
+#include <pwd.h>
+#include <sys/wait.h>
+#include <vector>
+#include <sstream>
 
 using namespace std;
 
@@ -25,19 +28,25 @@ passwd *getuser() {
     return pwd;
 }
 
-bool specialcom(string command) {
-    if (command == "exit") {
+bool specialcom(char **argv) {
+    if ((string)argv[0] == "exit") {
         run = false;
-    } else if (command.substr(0, 2) == "cd") {
+    } else if ((string)argv[0] == "cd") {
         string homedir = getuser()->pw_dir;
 
-        for (int i = 0; i < command.length(); i++) {
-            if (command[i] == '~') {
-                command.replace(i, 1, homedir);
+        for (int arg = 0; argv[arg] != nullptr; arg++) {
+            string args = (string)argv[arg];
+
+            for (int i = 0; i < (int)args.size(); i++){
+                if (args[i] == '~') {
+                    args.replace(i, 1, homedir);
+                }
             }
+
+            strcpy(argv[arg], (char *)args.c_str());
         }
 
-        chdir(command.substr(3).c_str());
+        chdir(argv[1]);
     } else {
         return false;
     }
@@ -45,12 +54,46 @@ bool specialcom(string command) {
     return true;
 }
 
-int main(int argc, char *argv[]) {
-    while (run) {
-        string command = prompt("> ");
+char **parsecom(string command) {
+    vector<string> args;
+    istringstream iss(command);
+    string token;
+    while (iss >> token) {
+        args.push_back(token);
+    }
+    
+    char** argv = new char*[args.size() + 1];
+    for (size_t i = 0; i < args.size(); i++) {
+        argv[i] = const_cast<char*>(args[i].c_str());
+    }
+    argv[args.size()] = nullptr;
 
-        if (!specialcom(command))
-            system(command.c_str());
+    return argv;
+}
+
+int main() {
+    chdir(getuser()->pw_dir);
+
+    while (run) {
+        string command = prompt((string)getcwd(0, 0) + (string)" > "); 
+
+        char **argv = parsecom(command);
+
+        if (!specialcom(argv)) {
+            run = false;
+
+            pid_t pid = fork();
+            
+            if (pid < 0) {
+                return 1;
+            } else if (pid == 0) {
+                execvp(argv[0], argv);
+            } else {
+                int childStatus;
+                waitpid(pid, &childStatus, 0);
+                run = true;
+            }
+        }
 
         command.clear();
     }
