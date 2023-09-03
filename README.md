@@ -1,4 +1,7 @@
-# VISH
+<p align="center">
+    <img src="./images/VISH.png" height=128>
+</p>
+
 Simple Linux shell made with C++ by Nick Kipshidze.
 
 # Running the code
@@ -9,8 +12,9 @@ Simple Linux shell made with C++ by Nick Kipshidze.
 4. Run the binary: `./vish`
 
 # Preview
-![Preview neofetch](screenshots/preview-1.png)
-![Preview nsplash](screenshots/preview-2.png)
+
+![Preview neofetch](images/preview-1.png)
+![Preview nsplash](images/preview-2.png)
 
 # Todo
 
