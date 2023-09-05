@@ -14,7 +14,6 @@ Simple Linux shell made with C++ by Nick Kipshidze.
 # Preview
 
 ![Preview neofetch](images/preview-1.png)
-![Preview nsplash](images/preview-2.png)
 
 # Todo
 
